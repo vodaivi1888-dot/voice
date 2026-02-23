@@ -37,6 +37,7 @@ interface HistoryItem {
   voiceName: string;
   timestamp: number;
   audioUrl: string;
+  index: number;
 }
 
 export default function App() {
@@ -161,12 +162,17 @@ export default function App() {
       
       const voiceName = voices.find(v => v.voice_id === selectedVoice)?.name || 'Unknown';
       
+      // Get next index
+      const totalCreated = parseInt(localStorage.getItem('tts_total_created') || '0') + 1;
+      localStorage.setItem('tts_total_created', totalCreated.toString());
+
       const newItem: HistoryItem = {
         id: Math.random().toString(36).substr(2, 9),
         text: text.length > 50 ? text.substring(0, 50) + '...' : text,
         voiceName,
         timestamp: Date.now(),
-        audioUrl
+        audioUrl,
+        index: totalCreated
       };
 
       const updatedHistory = [newItem, ...history];
@@ -219,7 +225,9 @@ export default function App() {
   const downloadAudio = (item: HistoryItem) => {
     const link = document.createElement('a');
     link.href = item.audioUrl;
-    link.download = `tts-${item.voiceName}-${item.timestamp}.mp3`;
+    const index = item.index || 0;
+    const paddedIndex = index.toString().padStart(3, '0');
+    link.download = `${paddedIndex}_${item.voiceName}.mp3`;
     link.click();
   };
 
@@ -368,6 +376,9 @@ export default function App() {
                       <div>
                         <p className="text-white font-medium line-clamp-1">{item.text}</p>
                         <div className="flex items-center gap-3 mt-1">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 bg-white/5 px-1.5 py-0.5 rounded">
+                            #{item.index?.toString().padStart(3, '0') || '000'}
+                          </span>
                           <span className="text-[10px] uppercase font-bold text-brand-purple bg-brand-purple/10 px-1.5 py-0.5 rounded">
                             {item.voiceName}
                           </span>
