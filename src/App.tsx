@@ -142,11 +142,17 @@ export default function App() {
         const text = await blob.text();
         let errorMessage = "Failed to generate speech";
         try {
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.error || errorData.detail?.message || errorMessage;
+          const errorData = typeof text === 'string' ? JSON.parse(text) : text;
+          errorMessage = errorData.error || errorData.detail?.message || (typeof errorData === 'string' ? errorData : errorMessage);
         } catch (e) {
-          errorMessage = text || errorMessage;
+          errorMessage = (typeof text === 'string' && text.length > 0) ? text : errorMessage;
         }
+        
+        // Final safety check to avoid [object Object]
+        if (typeof errorMessage !== 'string') {
+          errorMessage = JSON.stringify(errorMessage);
+        }
+        
         throw new Error(errorMessage);
       }
 
